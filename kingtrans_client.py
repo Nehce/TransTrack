@@ -24,6 +24,7 @@ import logging
 import time
 import random
 import re
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -125,7 +126,8 @@ class KingtransClient:
         backoff_factor: float = 0.6,
         logger: Optional[logging.Logger] = None,
     ) -> None:
-        """
+        """Create a client.
+
         :param host: target host
         :param language: 'zh' or 'en'
         :param max_num: zhongXingTrackMaxNum for list request
@@ -154,18 +156,20 @@ class KingtransClient:
         self._list_path = "/WebTrack?action=list"
         self._repeat_path = "/WebTrack?action=repeat"
 
+        # Reuse one Session across queries for connection pooling/performance.
+        # If a request fails badly, we may recreate it.
+        self._session = self._make_session()
+
     # ---------- Public API ----------
     def query(self, tracking_no: str) -> TrackResult:
         """Fetch and parse tracking info for one bill ID.
         Performs HTTP/HTTPS fallback and robust retries.
         """
         last_err: Optional[Exception] = None
-        # Shuffle bases a bit to avoid sticky failures
         bases = list(self._bases)
-        # Keep HTTP first, but add a tiny random jitter between attempts
         for i, base in enumerate(bases):
             try:
-                sess = self._make_session()
+                sess = self._session
                 self._log.debug(f"Using base {base}")
                 # Step 1: establish session via list
                 r1 = self._post_list(sess, base, tracking_no)
@@ -178,13 +182,31 @@ class KingtransClient:
             except Exception as e:
                 last_err = e
                 self._log.warning(f"Attempt {i+1}/{len(bases)} failed on {base}: {e}")
+                # Recreate session to clear cookies/connection state before next attempt
+                try:
+                    self._session.close()
+                except Exception:
+                    pass
+                self._session = self._make_session()
                 # small jitter to avoid thundering herd / transient server quirks
                 time.sleep(0.4 + random.random() * 0.6)
                 continue
-        # after all bases failed
         if isinstance(last_err, KingtransError):
             raise last_err
         raise KingtransError(f"Query failed for {tracking_no}: {last_err}")
+
+    def close(self) -> None:
+        """Close the underlying HTTP session."""
+        try:
+            self._session.close()
+        except Exception:
+            pass
+
+    def __enter__(self) -> "KingtransClient":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
 
     # ---------- Internals ----------
     def _make_session(self) -> requests.Session:
@@ -231,14 +253,15 @@ class KingtransClient:
             "isRepeat": "no",
             "language": self.language,
         }
-        headers = {"X-Requested-With": "XMLHttpRequest",
-                   "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                   "Origin": base,
-                   "Referer": urljoin(base, self._list_path)}
+        headers = {
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": base,
+            "Referer": urljoin(base, self._list_path),
+        }
         r = sess.post(url, data=payload, headers=headers, timeout=self.timeout)
         if not r.ok:
             raise HttpError(f"repeat request failed: {r.status_code}", r.status_code)
-        # content-type is text/xml; ensure text decoding ok
         r.encoding = r.encoding or "utf-8"
         return r
 
@@ -259,10 +282,8 @@ class KingtransClient:
         s = text.lstrip()
         if not s.startswith("<"):
             return False
-        # Typical Kingtrans payload contains <xdoc> root
         if "<xdoc" in s[:200].lower():
             return True
-        # Also accept common XML declaration/root patterns
         if s.startswith("<?xml"):
             return True
         return False
@@ -270,7 +291,6 @@ class KingtransClient:
     def _parse_xml(self, xml_text: str, tracking_no: str) -> TrackResult:
         if not self._looks_like_xml(xml_text):
             preview = self._snip(xml_text)
-            # Common failure: HTML error page, bot protection, or empty response
             raise ParseError(
                 "Unexpected non-XML response from server (cannot parse tracking XML). "
                 f"tracking_no={tracking_no!r}; preview={preview!r}"
@@ -292,7 +312,6 @@ class KingtransClient:
                 f"tracking_no={tracking_no!r}; preview={preview!r}"
             )
 
-        # Prefer matching billid if multiple
         def pick(t):
             return t.attrib.get("billid") == tracking_no
 
@@ -328,11 +347,9 @@ class KingtransClient:
                 )
             )
 
-        # Sort by time desc if the sdate format matches; otherwise keep order
         def _key(rec: TrackItem):
-            s = rec.sdate
-            # Fast path: YYYY-MM-DD HH:MM:SS length 19 or similar; no datetime import to keep deps minimal here
-            return s
+            return rec.sdate
+
         try:
             items.sort(key=_key, reverse=True)
         except Exception:
@@ -341,12 +358,9 @@ class KingtransClient:
         return TrackResult(summary=summary, items=items, raw_xml=xml_text)
 
 
-# =============================
-# Optional: small demo when run directly
-# =============================
 if __name__ == "__main__":
     client = KingtransClient()
-    result = client.query("1ZW1008Y6819740526")
+    result = client.query("1ZW1008Y6816279460")
     print("=== Summary ===")
     print(result.summary)
     print(f"Items: {len(result.items)}")
