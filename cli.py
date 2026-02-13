@@ -31,7 +31,7 @@ from typing import Iterable, List
 
 from kingtrans_client import KingtransClient
 from storage import JsonStateStore, diff_result_pretty
-
+from telegram_notify import send_telegram_message
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Kingtrans tracking CLI")
@@ -46,6 +46,7 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     p.add_argument("--retries", type=int, default=3, help="HTTP retry count")
     p.add_argument("--timeout-connect", type=float, default=5.0, help="Connect timeout seconds")
     p.add_argument("--timeout-read", type=float, default=15.0, help="Read timeout seconds")
+    p.add_argument("--notify-telegram", action="store_true", help="Send Telegram message on updates")
 
     out = p.add_mutually_exclusive_group()
     out.add_argument("--json", action="store_true", help="Print results as JSON lines")
@@ -111,6 +112,15 @@ def run_once(args: argparse.Namespace) -> None:
         try:
             res = client.query(tn)
             diff = store.update_with_result(tn, res)
+            if args.notify_telegram and diff.added_items:
+                # diff.added_items in this project is a List[dict] with keys: sdate/place/intro
+                lines = [f"📦 {tn} updates ({len(diff.added_items)} new):"]
+                for it in diff.added_items:
+                    sdate = it.get("sdate", "")
+                    place = it.get("place", "")
+                    intro = it.get("intro", "")
+                    lines.append(f"- {sdate} | {place} | {intro}")
+                send_telegram_message("\n".join(lines))
 
             if args.json:
                 # JSON lines: one per tracking number
