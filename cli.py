@@ -168,4 +168,15 @@ def main(argv: List[str]) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    # Allow direct run in IDE without CLI arguments (for local testing only)
+    if len(sys.argv) == 1:
+        print("No CLI arguments provided. Running with default test parameters...")
+        # TODO: replace with your real test tracking number if needed
+        default_args = [
+            "--tracking", "1ZW1008Y6819740526",
+            "--notify-telegram",
+        ]
+        main(default_args)
+    else:
+        main(sys.argv[1:])
+
