@@ -10,11 +10,14 @@ This single file covers:
 """
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
 import pytest
 
+import cli
+import send_test_telegram
 from kingtrans_client import KingtransClient, TrackItem, TrackSummary, TrackResult
 from storage import JsonStateStore
 from diff import compute_diff, pretty_print_diff
@@ -109,6 +112,161 @@ def test_storage_json_state_store(tmp_path: Path):
     diff3 = store.update_with_result("1ZW1008Y6816279460", res2)
     assert diff3.added_keys and diff3.added_items
     assert any(it["index"] == "trackitem_0_-1" for it in diff3.added_items)
+
+
+def test_storage_uses_event_content_when_provider_indexes_shift(tmp_path: Path):
+    summary = TrackSummary(
+        billid="TN1",
+        transbillid="TN1",
+        status_name="",
+        status_code="100",
+        latest_time="2026-05-29 15:15:59",
+        latest_place="Shenzhen",
+        latest_intro="Entered sorting center",
+        country="",
+        country_en="",
+        dest="",
+        channel="",
+        chan_type="",
+        goodsnum="",
+        rweight="",
+        track_url="",
+    )
+    first = TrackItem(index="trackitem_0_0", sdate="2026-05-29 15:15:59", place="Shenzhen", intro="Entered sorting center")
+    second = TrackItem(index="trackitem_0_1", sdate="2026-05-30 09:00:00", place="Shenzhen", intro="Departed sorting center")
+
+    store = JsonStateStore(base_dir=str(tmp_path / "state"))
+    store.update_with_result("TN1", TrackResult(summary=summary, items=[second, first], raw_xml=""))
+
+    delivered = TrackItem(index="trackitem_0_0", sdate="2026-06-01 10:00:00", place="Berlin", intro="Delivered")
+    shifted_second = TrackItem(index="trackitem_0_1", sdate=second.sdate, place=second.place, intro=second.intro)
+    shifted_first = TrackItem(index="trackitem_0_2", sdate=first.sdate, place=first.place, intro=first.intro)
+    diff = store.update_with_result(
+        "TN1",
+        TrackResult(summary=summary, items=[delivered, shifted_second, shifted_first], raw_xml=""),
+    )
+
+    assert [it["intro"] for it in diff.added_items] == ["Delivered"]
+
+
+def test_storage_migrates_legacy_provider_index_state_without_spam(tmp_path: Path):
+    summary = TrackSummary(
+        billid="TN1",
+        transbillid="TN1",
+        status_name="",
+        status_code="100",
+        latest_time="2026-05-29 15:15:59",
+        latest_place="Shenzhen",
+        latest_intro="Entered sorting center",
+        country="",
+        country_en="",
+        dest="",
+        channel="",
+        chan_type="",
+        goodsnum="",
+        rweight="",
+        track_url="",
+    )
+    state_dir = tmp_path / "state"
+    state_dir.mkdir()
+    (state_dir / "TN1.json").write_text(
+        json.dumps({"item_keys": ["trackitem_0_0"], "summary_fp": "", "updated_ts": 0, "version": 1}),
+        encoding="utf-8",
+    )
+
+    item = TrackItem(index="trackitem_0_0", sdate="2026-05-29 15:15:59", place="Shenzhen", intro="Entered sorting center")
+    store = JsonStateStore(base_dir=str(state_dir))
+    diff = store.update_with_result("TN1", TrackResult(summary=summary, items=[item], raw_xml=""))
+
+    saved = json.loads((state_dir / "TN1.json").read_text(encoding="utf-8"))
+    assert diff.added_items == []
+    assert saved["item_keys"] == ["2026-05-29 15:15:59|Shenzhen|Entered sorting center"]
+
+
+def test_cli_does_not_save_state_when_telegram_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    summary = TrackSummary(
+        billid="TN1",
+        transbillid="TN1",
+        status_name="",
+        status_code="100",
+        latest_time="2026-06-01 10:00:00",
+        latest_place="Berlin",
+        latest_intro="Delivered",
+        country="",
+        country_en="",
+        dest="",
+        channel="",
+        chan_type="",
+        goodsnum="",
+        rweight="",
+        track_url="",
+    )
+    result = TrackResult(
+        summary=summary,
+        items=[TrackItem(index="trackitem_0_0", sdate="2026-06-01 10:00:00", place="Berlin", intro="Delivered")],
+        raw_xml="",
+    )
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def query(self, tracking_no: str) -> TrackResult:
+            return result
+
+    def fail_send(text: str) -> None:
+        raise RuntimeError("telegram failed")
+
+    monkeypatch.setattr(cli, "KingtransClient", FakeClient)
+    monkeypatch.setattr(cli, "send_telegram_message", fail_send)
+
+    args = argparse.Namespace(
+        tracking=["TN1"],
+        batch=None,
+        state_dir=str(tmp_path / "state"),
+        language="zh",
+        max_num=10,
+        retries=0,
+        timeout_connect=1.0,
+        timeout_read=1.0,
+        notify_telegram=True,
+        json=False,
+        pretty=True,
+        csv=None,
+        sleep=0,
+    )
+
+    cli.run_once(args)
+
+    assert not (tmp_path / "state" / "TN1.json").exists()
+
+
+def test_send_test_telegram_script_uses_custom_message(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]):
+    sent = []
+
+    def fake_send(text: str) -> None:
+        sent.append(text)
+
+    monkeypatch.setattr(send_test_telegram, "send_telegram_message", fake_send)
+
+    send_test_telegram.main(["--message", "hello from test"])
+
+    assert sent == ["hello from test"]
+    assert "Telegram test message sent." in capsys.readouterr().out
+
+
+def test_send_test_telegram_script_default_message(monkeypatch: pytest.MonkeyPatch):
+    sent = []
+
+    def fake_send(text: str) -> None:
+        sent.append(text)
+
+    monkeypatch.setattr(send_test_telegram, "send_telegram_message", fake_send)
+
+    send_test_telegram.main([])
+
+    assert len(sent) == 1
+    assert sent[0].startswith("TransTrack Telegram test OK\nTime: ")
 
 
 # -------------------------------

@@ -41,6 +41,12 @@ python cli.py --batch tracklist.txt --csv added.csv
 ```
 Where `tracklist.txt` contains one tracking number per line.
 
+### Test Telegram notification
+```bash
+python send_test_telegram.py
+```
+Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` environment variables.
+
 ### Loop mode
 ```bash
 python cli.py --batch tracklist.txt --loop --interval 120

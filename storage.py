@@ -68,17 +68,31 @@ class DiffResult:
 # =============================
 
 def _item_key(it: TrackItem) -> str:
-    """Return a stable key for a TrackItem. Matches kingtrans_client.TrackItem.key."""
+    """Return a stable key for a TrackItem.
+
+    Provider indexes are positional and can shift when new events are inserted,
+    so prefer the event content for persistence/diffing.
+    """
     try:
-        idx = getattr(it, "index", "") or ""
-        if idx:
-            return idx
         sdate = getattr(it, "sdate", "") or ""
         place = getattr(it, "place", "") or ""
         intro = getattr(it, "intro", "") or ""
-        return f"{sdate}|{place}|{intro}"
+        event_key = f"{sdate}|{place}|{intro}"
+        if event_key != "||":
+            return event_key
+        idx = getattr(it, "index", "") or ""
+        if idx:
+            return idx
+        return event_key
     except Exception:
         return str(it)
+
+
+def _provider_index_key(it: TrackItem) -> str:
+    try:
+        return getattr(it, "index", "") or ""
+    except Exception:
+        return ""
 
 
 def fingerprint_summary(summary: TrackSummary) -> str:
@@ -116,7 +130,7 @@ class StateStore:
     def save(self, tracking_no: str, snap: StateSnapshot) -> None:
         raise NotImplementedError
 
-    def update_with_result(self, tracking_no: str, result: TrackResult) -> DiffResult:
+    def update_with_result(self, tracking_no: str, result: TrackResult, save: bool = True) -> DiffResult:
         """Compute diff vs existing state and persist new snapshot."""
         # Gather current keys
         items = getattr(result, "items", []) or []
@@ -127,14 +141,22 @@ class StateStore:
         old = self.load(tracking_no)
         before_fp = old.summary_fp if old else ""
         old_keys = set(old.item_keys) if old else set()
-        new_keys = set(item_keys)
+        old_uses_provider_indexes = bool(old_keys) and all("|" not in k for k in old_keys)
 
-        added_keys = [k for k in item_keys if k not in old_keys]
+        added_keys = []
+        for key, item in zip(item_keys, items):
+            if key in old_keys:
+                continue
+            if old_uses_provider_indexes and _provider_index_key(item) in old_keys:
+                continue
+            added_keys.append(key)
         summary_changed = (before_fp != new_fp)
 
-        # Save new snapshot
+        # Save new snapshot if requested. Callers that need an external side
+        # effect (e.g. Telegram) can delay this until the side effect succeeds.
         snap = StateSnapshot(item_keys=item_keys, summary_fp=new_fp, updated_ts=time.time())
-        self.save(tracking_no, snap)
+        if save:
+            self.save(tracking_no, snap)
 
         # Enrich diff with readable content
         key_to_item: Dict[str, dict] = {}

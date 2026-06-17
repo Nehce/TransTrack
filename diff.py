@@ -28,14 +28,21 @@ import hashlib
 # =============================
 
 def item_key(item: Dict) -> str:
-    """Stable key for a track item based on provider index or tuple fallback."""
-    idx = str(item.get("index", "")).strip()
-    if idx:
-        return idx
+    """Stable key for a track item based on event content.
+
+    Provider indexes are positional and can shift when new events are inserted,
+    so they are only a fallback for otherwise-empty records.
+    """
     sdate = str(item.get("sdate", "")).strip()
     place = str(item.get("place", "")).strip()
     intro = str(item.get("intro", "")).strip()
-    return f"{sdate}|{place}|{intro}"
+    event_key = f"{sdate}|{place}|{intro}"
+    if event_key != "||":
+        return event_key
+    idx = str(item.get("index", "")).strip()
+    if idx:
+        return idx
+    return event_key
 
 
 def fingerprint_summary(summary: Dict) -> str:

@@ -111,7 +111,8 @@ def run_once(args: argparse.Namespace) -> None:
         logging.getLogger("cli").info(f"[{i}/{len(numbers)}] Query {tn}")
         try:
             res = client.query(tn)
-            diff = store.update_with_result(tn, res)
+            should_delay_save = bool(args.notify_telegram)
+            diff = store.update_with_result(tn, res, save=not should_delay_save)
             if args.notify_telegram and diff.added_items:
                 # diff.added_items in this project is a List[dict] with keys: sdate/place/intro
                 lines = [f"📦 {tn} updates ({len(diff.added_items)} new):"]
@@ -121,6 +122,8 @@ def run_once(args: argparse.Namespace) -> None:
                     intro = it.get("intro", "")
                     lines.append(f"- {sdate} | {place} | {intro}")
                 send_telegram_message("\n".join(lines))
+            if should_delay_save:
+                store.update_with_result(tn, res, save=True)
 
             if args.json:
                 # JSON lines: one per tracking number
