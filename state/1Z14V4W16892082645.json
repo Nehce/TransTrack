@@ -1,16 +1,16 @@
 {
   "item_keys": [
-    "trackitem_0_0",
-    "trackitem_0_1",
-    "trackitem_0_2",
-    "trackitem_0_3",
-    "trackitem_0_4",
-    "trackitem_0_7",
-    "trackitem_0_8",
-    "trackitem_0_5",
-    "trackitem_0_6"
+    "2026-06-16 10:51:24||Shipment in Transit Russia 【正在中转-俄罗斯】",
+    "2026-06-13 10:40:28||Shipment in Transit Kazakhstan【正在中转-哈萨克斯坦】",
+    "2026-06-11 10:00:03||Export clearance completed 【报关已放行-包裹已出口】",
+    "2026-06-02 13:45:29||Arrived at border gateway 【抵达口岸】",
+    "2026-05-29 21:15:56||The package has been shipped 【包裹已出库】",
+    "2026-05-29 15:16:25|深圳|离开分拨中心",
+    "2026-05-29 15:15:59|深圳|进入分拨中心",
+    "2026-05-27 23:51:30||Enter the Distribution Center",
+    "2026-05-27 16:47:43||Order Received"
   ],
   "summary_fp": "a3c9f0eaadd019e7f334e851a92e02d996baa85bce949742e9fc932bad89d473",
-  "updated_ts": 1781696884.9903328,
+  "updated_ts": 1781730303.4445322,
   "version": 1
 }
