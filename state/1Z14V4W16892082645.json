@@ -1,6 +1,7 @@
 {
   "item_keys": [
-    "2026-06-21 09:47:07||Shipment in Transit - Latvia 【正在中转-拉脱维亚】",
+    "2026-06-21 11:00:59||Shipment in Transit - Lithuania 【正在中转-立陶宛】",
+    "2026-06-20 09:47:07||Shipment in Transit - Latvia 【正在中转-拉脱维亚】",
     "2026-06-19 09:46:56||Shipment in Transit - Belarus 【正在中转-白俄罗斯】",
     "2026-06-16 10:51:24||Shipment in Transit Russia 【正在中转-俄罗斯】",
     "2026-06-13 10:40:28||Shipment in Transit Kazakhstan【正在中转-哈萨克斯坦】",
@@ -12,7 +13,7 @@
     "2026-05-27 23:51:30||Enter the Distribution Center",
     "2026-05-27 16:47:43||Order Received"
   ],
-  "summary_fp": "f4513243929f051854e2084bebcee7b929ab3dec2339575c17a4a57c3c874ab1",
-  "updated_ts": 1782073470.4196165,
+  "summary_fp": "74a384bc31e8b8ed57f0a9dfaab1b61b9daa789c2fd9f297bb4fb7f3bfdde5a4",
+  "updated_ts": 1782132591.5127628,
   "version": 1
 }
