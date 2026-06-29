@@ -1,5 +1,6 @@
 {
   "item_keys": [
+    "2026-06-26 19:40:19|Packages have been picked up|已交仓，请留意签收",
     "2026-06-23 19:53:06||Customs clearance completed 【清关已放行，待交仓】",
     "2026-06-23 10:39:07||Arrived at customs clearance gateway 【已抵达清关】",
     "2026-06-22 10:38:58||Shipment in Transit - poland 【正在中转-波兰】",
@@ -16,7 +17,7 @@
     "2026-05-27 23:51:30||Enter the Distribution Center",
     "2026-05-27 16:47:43||Order Received"
   ],
-  "summary_fp": "a20e3c65365f74ff8a593f9530e3eef1cd7a734bcbf17508c3e845b195b85e08",
-  "updated_ts": 1782734355.2831028,
+  "summary_fp": "479067f6a7d1983b1f6c832cdce77a82ff8b92eb86706e2eea25140f4b339000",
+  "updated_ts": 1782766105.181666,
   "version": 1
 }
