@@ -1,5 +1,7 @@
 {
   "item_keys": [
+    "2026-06-30 05:34:00|NL  Eindhoven|离开设施",
+    "2026-06-29 12:22:57|NL  Eindhoven|抵达设施",
     "2026-06-26 19:40:19|Packages have been picked up|已交仓，请留意签收",
     "2026-06-23 19:53:06||Customs clearance completed 【清关已放行，待交仓】",
     "2026-06-23 10:39:07||Arrived at customs clearance gateway 【已抵达清关】",
@@ -14,10 +16,11 @@
     "2026-05-29 21:15:56||The package has been shipped 【包裹已出库】",
     "2026-05-29 15:16:25|深圳|离开分拨中心",
     "2026-05-29 15:15:59|深圳|进入分拨中心",
+    "2026-05-28 09:34:16|BE|发件人已创建标签，但是 UPS 尚未收到包裹。",
     "2026-05-27 23:51:30||Enter the Distribution Center",
     "2026-05-27 16:47:43||Order Received"
   ],
-  "summary_fp": "479067f6a7d1983b1f6c832cdce77a82ff8b92eb86706e2eea25140f4b339000",
-  "updated_ts": 1782815463.2486753,
+  "summary_fp": "ceded5706a59d7e63e6ce0d1addb0065ccd730913fa8115a0427a9a5d696a10c",
+  "updated_ts": 1782852952.9199932,
   "version": 1
 }
