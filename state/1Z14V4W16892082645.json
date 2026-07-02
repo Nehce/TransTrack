@@ -1,5 +1,6 @@
 {
   "item_keys": [
+    "2026-07-01 11:37:38|DE  INGOLSTADT|已递送",
     "2026-07-01 10:03:02|DE  Obertraubling|准备今天递送",
     "2026-07-01 06:52:00|DE  Obertraubling|UPS 设施处理",
     "2026-07-01 00:01:00|DE  Obertraubling|抵达设施",
@@ -25,7 +26,7 @@
     "2026-05-27 23:51:30||Enter the Distribution Center",
     "2026-05-27 16:47:43||Order Received"
   ],
-  "summary_fp": "ac90c345e008cfb80adec48a3075b90fe9d6c917f6eb65e07f41f0acf85bf01c",
-  "updated_ts": 1782986980.4798014,
+  "summary_fp": "1645265ad8443a73e08f190f925b2ce708d9f5775fc687a947c89920cf4c827b",
+  "updated_ts": 1783023440.6396787,
   "version": 1
 }
