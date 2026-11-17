@@ -1,14 +1,14 @@
 {
   "item_keys": [
-    "2026-07-01 11:37:38|DE  INGOLSTADT|已递送",
-    "2026-07-01 10:03:02|DE  Obertraubling|准备今天递送",
-    "2026-07-01 06:52:00|DE  Obertraubling|UPS 设施处理",
-    "2026-07-01 00:01:00|DE  Obertraubling|抵达设施",
-    "2026-06-30 21:41:00|DE  Nurnberg|离开设施",
-    "2026-06-30 13:39:00|DE  Nurnberg|抵达设施",
-    "2026-06-30 05:34:00|NL  Eindhoven|离开设施",
-    "2026-06-29 12:22:57|NL  Eindhoven|抵达设施",
-    "2026-06-26 19:40:19|Packages have been picked up|已交仓，请留意签收",
+    "2026-07-01 11:37:38||【DE INGOLSTADT】 已递送",
+    "2026-07-01 10:03:02||【DE Obertraubling】 准备今天递送",
+    "2026-07-01 06:52:00||【DE Obertraubling】 UPS 设施处理",
+    "2026-07-01 00:01:00||【DE Obertraubling】 抵达设施",
+    "2026-06-30 21:41:00||【DE Nurnberg】 离开设施",
+    "2026-06-30 13:39:00||【DE Nurnberg】 抵达设施",
+    "2026-06-30 05:34:00||【NL Eindhoven】 离开设施",
+    "2026-06-29 12:22:57||【NL Eindhoven】 抵达设施",
+    "2026-06-26 19:40:19||【Packages have been picked up】 已交仓，请留意签收",
     "2026-06-23 19:53:06||Customs clearance completed 【清关已放行，待交仓】",
     "2026-06-23 10:39:07||Arrived at customs clearance gateway 【已抵达清关】",
     "2026-06-22 10:38:58||Shipment in Transit - poland 【正在中转-波兰】",
@@ -22,11 +22,11 @@
     "2026-05-29 21:15:56||The package has been shipped 【包裹已出库】",
     "2026-05-29 15:16:25|深圳|离开分拨中心",
     "2026-05-29 15:15:59|深圳|进入分拨中心",
-    "2026-05-28 09:34:16|BE|发件人已创建标签，但是 UPS 尚未收到包裹。",
+    "2026-05-28 09:34:16||【BE 】 发件人已创建标签，但是 UPS 尚未收到包裹。",
     "2026-05-27 23:51:30||Enter the Distribution Center",
     "2026-05-27 16:47:43||Order Received"
   ],
-  "summary_fp": "1645265ad8443a73e08f190f925b2ce708d9f5775fc687a947c89920cf4c827b",
-  "updated_ts": 1794881908.939982,
+  "summary_fp": "eceffbeac57f0eba68b0ed93df207c3e4a617b5424f82365b5cb80188db22f8c",
+  "updated_ts": 1794933803.984339,
   "version": 1
 }
